@@ -1,21 +1,22 @@
-//
-//  ContentView.swift
-//  GuessingGame
-//
-//  Created by Jacob Rees on 10/07/2025.
-//
-
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var authViewModel = AuthenticationViewModel()
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        Group {
+            switch authViewModel.authenticationState {
+            case .unauthenticated, .authenticating:
+                SignInView(authViewModel: authViewModel)
+                
+            case .needsAvatar(let user):
+                AvatarSelectionView(authViewModel: authViewModel, user: user)
+                
+            case .authenticated(let user):
+                MainMenuView(authViewModel: authViewModel, user: user)
+            }
         }
-        .padding()
+        .animation(.easeInOut(duration: 0.3), value: authViewModel.authenticationState)
     }
 }
 
