@@ -52,6 +52,13 @@ struct GameLobbyView: View {
             } message: {
                 Text(lobbyViewModel.errorMessage)
             }
+            .alert("Host Transfer", isPresented: .constant(!lobbyViewModel.hostTransferMessage.isEmpty)) {
+                Button("OK") {
+                    lobbyViewModel.hostTransferMessage = ""
+                }
+            } message: {
+                Text(lobbyViewModel.hostTransferMessage)
+            }
             .onChange(of: lobbyViewModel.gameStarted) { _, started in
                 if started {
                     navigateToGameplay = true
@@ -89,6 +96,7 @@ struct GameLobbyView: View {
             Text("Game Code")
                 .font(.headline)
                 .foregroundColor(.secondary)
+                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             
             HStack {
                 Text(lobbyViewModel.gameCode)
@@ -96,16 +104,27 @@ struct GameLobbyView: View {
                     .fontWeight(.bold)
                     .tracking(4)
                     .foregroundColor(.primary)
+                    .textSelection(.enabled)
+                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                    .accessibilityLabel("Game code: \(lobbyViewModel.gameCode.map { String($0) }.joined(separator: " "))")
+                    .accessibilityHint("Six character game code for others to join")
                 
                 Button(action: {
                     UIPasteboard.general.string = lobbyViewModel.gameCode
+                    // Add haptic feedback
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                    impactFeedback.impactOccurred()
                 }) {
                     Image(systemName: "doc.on.doc")
                         .foregroundColor(.blue)
+                        .imageScale(.large)
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Copy game code")
+                .accessibilityHint("Copies the game code to clipboard")
             }
             .padding()
-            .background(Color.gray.opacity(0.1))
+            .background(Color(UIColor.secondarySystemBackground))
             .cornerRadius(12)
             
             Text("Share this code with friends to join")
@@ -125,6 +144,7 @@ struct GameLobbyView: View {
                 Text("\(lobbyViewModel.playerCount)/8")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
+                    .accessibilityLabel("\(lobbyViewModel.playerCount) of 8 players")
             }
             
             LazyVStack(spacing: 12) {
@@ -136,13 +156,17 @@ struct GameLobbyView: View {
                 }
             }
             .padding()
-            .background(Color.gray.opacity(0.05))
+            .background(Color(UIColor.systemBackground))
             .cornerRadius(12)
+            .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
         }
     }
     
     private var startGameButton: some View {
         Button(action: {
+            // Add haptic feedback
+            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+            impactFeedback.impactOccurred()
             lobbyViewModel.startGame()
         }) {
             HStack {
@@ -152,11 +176,19 @@ struct GameLobbyView: View {
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(Color.green)
+            .background(
+                lobbyViewModel.playerCount < 2 ? 
+                Color(UIColor.systemGray3) : 
+                Color(UIColor.systemGreen)
+            )
             .foregroundColor(.white)
             .cornerRadius(12)
+            .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
         }
         .disabled(lobbyViewModel.playerCount < 2)
+        .animation(.easeInOut(duration: 0.2), value: lobbyViewModel.playerCount)
+        .accessibilityLabel("Start game")
+        .accessibilityHint(lobbyViewModel.playerCount < 2 ? "Need at least 2 players to start" : "Starts the guessing game")
     }
 }
 
@@ -170,7 +202,11 @@ struct PlayerRowView: View {
             Text(player.avatar)
                 .font(.title2)
                 .frame(width: 40, height: 40)
-                .background(Circle().fill(Color.gray.opacity(0.1)))
+                .background(
+                    Circle()
+                        .fill(Color(UIColor.systemGray6))
+                        .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+                )
             
             // Player Info
             VStack(alignment: .leading, spacing: 2) {
@@ -181,13 +217,16 @@ struct PlayerRowView: View {
                     
                     if isHost {
                         Text("HOST")
-                            .font(.caption)
+                            .font(.caption2)
                             .fontWeight(.bold)
-                            .foregroundColor(.orange)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.orange.opacity(0.1))
-                            .cornerRadius(4)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                Capsule()
+                                    .fill(Color(UIColor.systemOrange))
+                                    .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+                            )
                     }
                 }
                 
@@ -200,13 +239,17 @@ struct PlayerRowView: View {
             
             // Status Indicator
             Circle()
-                .fill(Color.green)
+                .fill(Color(UIColor.systemGreen))
                 .frame(width: 8, height: 8)
+                .shadow(color: Color.green.opacity(0.4), radius: 2, x: 0, y: 0)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(Color.white.opacity(0.5))
+        .background(Color(UIColor.tertiarySystemBackground))
         .cornerRadius(8)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(player.displayName)\(isHost ? ", host" : ""), joined at \(formatJoinTime(player.joinedAt)), online")
+        .accessibilityAddTraits(isHost ? .isHeader : [])
     }
     
     private func formatJoinTime(_ date: Date) -> String {

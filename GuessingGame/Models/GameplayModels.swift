@@ -41,8 +41,11 @@ struct GameState: Codable, Equatable {
     var phase: GamePhase
     var turnOrder: [String] // Array of guesser IDs in turn order
     var questions: [Question]
+    var reactions: [EmojiReaction]
     var winnerID: String?
     var roundNumber: Int
+    var turnStartTime: Date?
+    var turnTimeLimit: Int // seconds
     
     init(answererID: String, guesserIDs: [String]) {
         self.answererID = answererID
@@ -52,8 +55,11 @@ struct GameState: Codable, Equatable {
         self.phase = .setup
         self.turnOrder = guesserIDs.shuffled()
         self.questions = []
+        self.reactions = []
         self.winnerID = nil
         self.roundNumber = 1
+        self.turnStartTime = nil
+        self.turnTimeLimit = 30
     }
     
     func toDictionary() -> [String: Any] {
@@ -65,8 +71,11 @@ struct GameState: Codable, Equatable {
             "phase": phase.rawValue,
             "turnOrder": turnOrder,
             "questions": questions.map { $0.toDictionary() },
+            "reactions": reactions.map { $0.toDictionary() },
             "winnerID": winnerID ?? "",
-            "roundNumber": roundNumber
+            "roundNumber": roundNumber,
+            "turnStartTime": turnStartTime?.timeIntervalSince1970 ?? 0,
+            "turnTimeLimit": turnTimeLimit
         ]
     }
     
@@ -86,16 +95,80 @@ struct GameState: Codable, Equatable {
         let questions = questionsData.compactMap { Question.fromDictionary($0) }
         let winnerID = dict["winnerID"] as? String
         
+        // Parse reactions
+        let reactionsData = dict["reactions"] as? [[String: Any]] ?? []
+        let reactions = reactionsData.compactMap { EmojiReaction.fromDictionary($0) }
+        
+        // Parse timer data
+        let turnStartTimeInterval = dict["turnStartTime"] as? TimeInterval ?? 0
+        let turnStartTime = turnStartTimeInterval > 0 ? Date(timeIntervalSince1970: turnStartTimeInterval) : nil
+        let turnTimeLimit = dict["turnTimeLimit"] as? Int ?? 30
+        
         var gameState = GameState(answererID: answererID, guesserIDs: turnOrder)
         gameState.category = category
         gameState.secretWord = secretWord
         gameState.currentTurnPlayerID = currentTurnPlayerID
         gameState.phase = phase
         gameState.questions = questions
+        gameState.reactions = reactions
         gameState.winnerID = winnerID?.isEmpty == true ? nil : winnerID
         gameState.roundNumber = roundNumber
+        gameState.turnStartTime = turnStartTime
+        gameState.turnTimeLimit = turnTimeLimit
         
         return gameState
+    }
+}
+
+struct EmojiReaction: Codable, Identifiable, Equatable {
+    let id: String
+    let playerID: String
+    let playerName: String
+    let emoji: String
+    let timestamp: Date
+    
+    init(playerID: String, playerName: String, emoji: String) {
+        self.id = UUID().uuidString
+        self.playerID = playerID
+        self.playerName = playerName
+        self.emoji = emoji
+        self.timestamp = Date()
+    }
+    
+    func toDictionary() -> [String: Any] {
+        return [
+            "id": id,
+            "playerID": playerID,
+            "playerName": playerName,
+            "emoji": emoji,
+            "timestamp": timestamp.timeIntervalSince1970
+        ]
+    }
+    
+    private init(id: String, playerID: String, playerName: String, emoji: String, timestamp: Date) {
+        self.id = id
+        self.playerID = playerID
+        self.playerName = playerName
+        self.emoji = emoji
+        self.timestamp = timestamp
+    }
+    
+    static func fromDictionary(_ dict: [String: Any]) -> EmojiReaction? {
+        guard let id = dict["id"] as? String,
+              let playerID = dict["playerID"] as? String,
+              let playerName = dict["playerName"] as? String,
+              let emoji = dict["emoji"] as? String,
+              let timestamp = dict["timestamp"] as? TimeInterval else {
+            return nil
+        }
+        
+        return EmojiReaction(
+            id: id,
+            playerID: playerID,
+            playerName: playerName,
+            emoji: emoji,
+            timestamp: Date(timeIntervalSince1970: timestamp)
+        )
     }
 }
 

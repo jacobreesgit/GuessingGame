@@ -6,14 +6,23 @@ struct GuesserView: View {
     @State private var guessText = ""
     @State private var showingGuessDialog = false
     @State private var answerText = ""
+    @State private var showingEmojiPicker = false
     
     var body: some View {
         VStack(spacing: 20) {
             // Header
             headerView
             
+            // Timer (for current player's turn)
+            if gameplayViewModel.isMyTurn && gameplayViewModel.isGuesser {
+                timerView
+            }
+            
             // Game info
             gameInfoView
+            
+            // Reactions display
+            reactionsView
             
             // Questions and answers
             questionsView
@@ -39,6 +48,12 @@ struct GuesserView: View {
         } message: {
             Text("Think you know the secret word? Enter your guess below!")
         }
+        .sheet(isPresented: $showingEmojiPicker) {
+            EmojiPickerView { emoji in
+                gameplayViewModel.addEmojiReaction(emoji)
+                showingEmojiPicker = false
+            }
+        }
     }
     
     private var headerView: some View {
@@ -51,11 +66,14 @@ struct GuesserView: View {
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.green)
+                    .accessibilityAddTraits(.isHeader)
+                    .accessibilityLabel("Your turn to ask a question or make a guess")
             } else {
                 Text("Wait for your turn")
                     .font(.title2)
                     .fontWeight(.medium)
                     .foregroundColor(.secondary)
+                    .accessibilityLabel("Waiting for your turn")
             }
             
             if let currentPlayer = gameplayViewModel.currentTurnPlayer {
@@ -74,6 +92,74 @@ struct GuesserView: View {
         }
     }
     
+    private var timerView: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Image(systemName: "timer")
+                    .foregroundColor(gameplayViewModel.timeRemaining <= 10 ? .red : .orange)
+                
+                Text("Time Remaining")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                Text("\(gameplayViewModel.timeRemaining)s")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(gameplayViewModel.timeRemaining <= 10 ? .red : .primary)
+                    .accessibilityLabel("\(gameplayViewModel.timeRemaining) seconds remaining")
+            }
+            
+            ProgressView(value: Double(gameplayViewModel.timeRemaining), total: 30.0)
+                .progressViewStyle(LinearProgressViewStyle(tint: gameplayViewModel.timeRemaining <= 10 ? .red : .blue))
+                .scaleEffect(x: 1, y: 2, anchor: .center)
+                .accessibilityLabel("Time remaining progress")
+                .accessibilityValue("\(Int((Double(gameplayViewModel.timeRemaining) / 30.0) * 100)) percent")
+            
+            if gameplayViewModel.timeRemaining <= 10 {
+                Text("Hurry up!")
+                    .font(.caption)
+                    .foregroundColor(.red)
+                    .fontWeight(.medium)
+            }
+        }
+        .padding()
+        .background(Color(UIColor.systemOrange).opacity(0.1))
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(gameplayViewModel.timeRemaining <= 10 ? Color.red : Color.orange, lineWidth: 2)
+        )
+    }
+    
+    @ViewBuilder
+    private var reactionsView: some View {
+        if !gameplayViewModel.recentReactions.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(gameplayViewModel.recentReactions) { reaction in
+                        VStack(spacing: 4) {
+                            Text(reaction.emoji)
+                                .font(.title2)
+                            
+                            Text(reaction.playerName)
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(8)
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .frame(height: 60)
+        }
+    }
+    
     private var gameInfoView: some View {
         VStack(spacing: 12) {
             HStack {
@@ -89,7 +175,7 @@ struct GuesserView: View {
                     .foregroundColor(.primary)
             }
             .padding()
-            .background(Color.gray.opacity(0.1))
+            .background(Color(UIColor.secondarySystemBackground))
             .cornerRadius(8)
             
             // Answerer info
@@ -158,6 +244,8 @@ struct GuesserView: View {
                     HStack {
                         TextField("Ask a yes/no question...", text: $questionText)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .accessibilityLabel("Question input")
+                            .accessibilityHint("Enter a yes or no question about the secret word")
                         
                         Button("Ask") {
                             gameplayViewModel.askQuestion(questionText)
@@ -169,6 +257,8 @@ struct GuesserView: View {
                         .background(questionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(8)
+                        .accessibilityLabel("Ask question")
+                        .accessibilityHint("Submits your question to the answerer")
                     }
                     
                     Text("Ask questions that can be answered with Yes or No")
@@ -190,6 +280,93 @@ struct GuesserView: View {
                     .background(Color.orange)
                     .foregroundColor(.white)
                     .cornerRadius(12)
+                }
+                
+                // Skip turn button
+                if gameplayViewModel.isMyTurn && gameplayViewModel.isGuesser {
+                    Button(action: {
+                        gameplayViewModel.skipTurn()
+                    }) {
+                        HStack {
+                            Image(systemName: "forward.fill")
+                            Text("Skip Turn")
+                                .fontWeight(.medium)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.gray)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                    }
+                }
+            }
+            
+            // Emoji reactions
+            HStack {
+                Text("React:")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Button("😀") { gameplayViewModel.addEmojiReaction("😀") }
+                    .accessibilityLabel("React with happy face")
+                Button("👍") { gameplayViewModel.addEmojiReaction("👍") }
+                    .accessibilityLabel("React with thumbs up")
+                Button("👎") { gameplayViewModel.addEmojiReaction("👎") }
+                    .accessibilityLabel("React with thumbs down")
+                Button("😮") { gameplayViewModel.addEmojiReaction("😮") }
+                    .accessibilityLabel("React with surprise")
+                Button("🤔") { gameplayViewModel.addEmojiReaction("🤔") }
+                    .accessibilityLabel("React with thinking")
+                
+                Spacer()
+                
+                Button("More") {
+                    showingEmojiPicker = true
+                }
+                .font(.caption)
+                .foregroundColor(.blue)
+                .accessibilityLabel("More emoji reactions")
+                .accessibilityHint("Opens emoji picker with more reaction options")
+            }
+        }
+    }
+}
+
+struct EmojiPickerView: View {
+    let onEmojiSelected: (String) -> Void
+    
+    private let emojis = [
+        "😀", "😃", "😄", "😁", "😊", "😍", "🤩", "😘", "😗", "😙",
+        "😚", "🙂", "🤗", "🤔", "🤨", "😐", "😑", "😶", "🙄", "😏",
+        "😣", "😥", "😮", "🤐", "😯", "😪", "😫", "🥱", "😴", "😌",
+        "😛", "😜", "😝", "🤤", "😒", "😓", "😔", "😕", "🙃", "🤑",
+        "😲", "☹️", "🙁", "😖", "😞", "😟", "😤", "😢", "😭", "😦",
+        "😧", "😨", "😩", "🤯", "😬", "😰", "😱", "🥵", "🥶", "😳",
+        "🤪", "😵", "🥴", "😠", "😡", "🤬", "😷", "🤒", "🤕", "🤢",
+        "🤮", "🤧", "😇", "🥳", "🥺", "🤠", "🤡", "🤥", "🤫", "🤭",
+        "👍", "👎", "👌", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉",
+        "👆", "🖕", "👇", "☝️", "👋", "🤚", "🖐", "✋", "🖖", "👏"
+    ]
+    
+    var body: some View {
+        NavigationView {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 8), spacing: 16) {
+                ForEach(emojis, id: \.self) { emoji in
+                    Button(emoji) {
+                        onEmojiSelected(emoji)
+                    }
+                    .font(.title)
+                    .frame(width: 40, height: 40)
+                }
+            }
+            .padding()
+            .navigationTitle("Pick an Emoji")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        onEmojiSelected("")
+                    }
                 }
             }
         }
@@ -231,7 +408,7 @@ struct QuestionRowView: View {
             }
         }
         .padding()
-        .background(Color.gray.opacity(0.05))
+        .background(Color(UIColor.tertiarySystemBackground))
         .cornerRadius(8)
     }
     
@@ -258,7 +435,7 @@ struct AnswerInputView: View {
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .padding()
-                    .background(Color.blue.opacity(0.1))
+                    .background(Color(UIColor.systemBlue).opacity(0.1))
                     .cornerRadius(8)
                 
                 Text("Asked by \(question.askerName)")
@@ -310,7 +487,7 @@ struct AnswerInputView: View {
             }
         }
         .padding()
-        .background(Color.green.opacity(0.1))
+        .background(Color(UIColor.systemGreen).opacity(0.1))
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)

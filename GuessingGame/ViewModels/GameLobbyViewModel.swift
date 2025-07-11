@@ -10,6 +10,7 @@ class GameLobbyViewModel: ObservableObject {
     @Published var errorMessage = ""
     @Published var isConnected = false
     @Published var gameStarted = false
+    @Published var hostTransferMessage = ""
     
     private let database = Database.database().reference()
     private var sessionListener: DatabaseHandle?
@@ -175,17 +176,46 @@ class GameLobbyViewModel: ObservableObject {
     func leaveGame() {
         guard let session = gameSession else { return }
         
-        // Remove player from session
-        database.child("sessions").child(session.id).child("players").child(currentUser.id).removeValue() { [weak self] error, _ in
-            if let error = error {
-                print("Failed to leave game: \(error.localizedDescription)")
-            } else {
-                print("Successfully left game")
+        let wasHost = session.hostId == currentUser.id
+        let remainingPlayers = session.players.filter { $0.key != currentUser.id }
+        
+        if remainingPlayers.isEmpty {
+            // Last player leaving, delete the session
+            database.child("sessions").child(session.id).removeValue() { error, _ in
+                if let error = error {
+                    print("Failed to delete session: \(error.localizedDescription)")
+                } else {
+                    print("Session deleted successfully")
+                }
             }
+        } else if wasHost {
+            // Transfer host to another player
+            let newHostId = remainingPlayers.keys.randomElement()!
+            let updates: [String: Any] = [
+                "hostId": newHostId,
+                "players/\(currentUser.id)": NSNull()
+            ]
             
-            Task { @MainActor in
-                await self?.cleanup()
+            database.child("sessions").child(session.id).updateChildValues(updates) { error, _ in
+                if let error = error {
+                    print("Failed to transfer host and leave: \(error.localizedDescription)")
+                } else {
+                    print("Host transferred and left successfully")
+                }
             }
+        } else {
+            // Regular player leaving
+            database.child("sessions").child(session.id).child("players").child(currentUser.id).removeValue() { error, _ in
+                if let error = error {
+                    print("Failed to leave game: \(error.localizedDescription)")
+                } else {
+                    print("Successfully left game")
+                }
+            }
+        }
+        
+        Task { @MainActor in
+            await cleanup()
         }
     }
     
@@ -216,6 +246,18 @@ class GameLobbyViewModel: ObservableObject {
                     self.errorMessage = "You have been removed from the game"
                     await self.cleanup()
                     return
+                }
+                
+                // Check if host changed
+                if let previousSession = self.gameSession,
+                   previousSession.hostId != session.hostId,
+                   session.hostId == self.currentUser.id {
+                    self.hostTransferMessage = "You are now the host!"
+                    
+                    // Clear the message after 3 seconds
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                        self.hostTransferMessage = ""
+                    }
                 }
                 
                 self.gameSession = session

@@ -38,6 +38,7 @@ struct GameplayView: View {
             .alert("Leave Game", isPresented: $showingLeaveConfirmation) {
                 Button("Cancel", role: .cancel) { }
                 Button("Leave", role: .destructive) {
+                    gameplayViewModel.leaveGame()
                     dismiss()
                 }
             } message: {
@@ -49,6 +50,12 @@ struct GameplayView: View {
                 }
             } message: {
                 Text(gameplayViewModel.errorMessage)
+            }
+            .onChange(of: gameplayViewModel.gameSession?.gameStarted) { _, gameStarted in
+                // Navigate back to lobby if game is reset
+                if gameStarted == false {
+                    dismiss()
+                }
             }
         }
     }
@@ -105,7 +112,7 @@ struct GameplayView: View {
                         .cornerRadius(8)
                 }
                 .padding()
-                .background(Color.gray.opacity(0.05))
+                .background(Color(UIColor.secondarySystemBackground))
                 .cornerRadius(12)
             }
             
@@ -173,6 +180,20 @@ struct GameOverView: View {
                                 .foregroundColor(.blue)
                         }
                     }
+                } else {
+                    VStack(spacing: 12) {
+                        Text("😔")
+                            .font(.system(size: 60))
+                        
+                        Text("Game Ended")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(.gray)
+                        
+                        Text("A player left the game")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
             
@@ -189,7 +210,7 @@ struct GameOverView: View {
                     GameSummaryRow(label: "Questions Asked", value: "\(gameplayViewModel.questions.count)")
                 }
                 .padding()
-                .background(Color.gray.opacity(0.05))
+                .background(Color(UIColor.secondarySystemBackground))
                 .cornerRadius(12)
             }
             
@@ -198,22 +219,43 @@ struct GameOverView: View {
             // Action buttons
             VStack(spacing: 12) {
                 if gameplayViewModel.isHost {
-                    Button(action: {
-                        gameplayViewModel.playAgain()
-                    }) {
-                        HStack {
-                            Image(systemName: "arrow.clockwise")
-                            Text("Play Again")
-                                .fontWeight(.semibold)
+                    if gameplayViewModel.isLoading {
+                        ProgressView("Starting new game...")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                    } else {
+                        Button(action: {
+                            gameplayViewModel.playAgain()
+                        }) {
+                            HStack {
+                                Image(systemName: "arrow.clockwise")
+                                Text("Play Again")
+                                    .fontWeight(.semibold)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.green)
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.green)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+                        
+                        Button(action: {
+                            gameplayViewModel.resetToLobby()
+                        }) {
+                            HStack {
+                                Image(systemName: "house")
+                                Text("Back to Lobby")
+                                    .fontWeight(.medium)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                        }
                     }
                 } else {
-                    Text("Waiting for host to start next round...")
+                    Text("Waiting for host to choose next action...")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
