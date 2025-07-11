@@ -21,7 +21,7 @@ class AuthenticationViewModel: NSObject, ObservableObject {
     }
     
     func checkAuthenticationState() {
-        Auth.auth().addStateDidChangeListener { [weak self] _, user in
+        _ = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             guard let self = self else { return }
             
             if let user = user {
@@ -45,7 +45,7 @@ class AuthenticationViewModel: NSObject, ObservableObject {
                 }
             } else {
                 // User doesn't exist in database, create profile
-                let displayName = firebaseUser.displayName ?? "User"
+                let displayName = firebaseUser.displayName ?? firebaseUser.email?.components(separatedBy: "@").first ?? "User"
                 let email = firebaseUser.email
                 let newUser = User(id: firebaseUser.uid, displayName: displayName, email: email)
                 self.authenticationState = .needsAvatar(newUser)
@@ -53,7 +53,7 @@ class AuthenticationViewModel: NSObject, ObservableObject {
         } withCancel: { [weak self] error in
             print("Failed to load user profile: \(error.localizedDescription)")
             // Even if database fails, we can still proceed with basic user info
-            let displayName = firebaseUser.displayName ?? "User"
+            let displayName = firebaseUser.displayName ?? firebaseUser.email?.components(separatedBy: "@").first ?? "User"
             let email = firebaseUser.email
             let newUser = User(id: firebaseUser.uid, displayName: displayName, email: email)
             self?.authenticationState = .needsAvatar(newUser)
@@ -90,13 +90,15 @@ class AuthenticationViewModel: NSObject, ObservableObject {
         database.child("users").child(user.id).setValue(user.toDictionary()) { [weak self] error, _ in
             guard let self = self else { return }
             
-            if let error = error {
-                print("Failed to save avatar to Firebase: \(error.localizedDescription)")
-                // Continue anyway - we can still use the app without Firebase persistence
-                self.authenticationState = .authenticated(user)
-            } else {
-                print("Successfully saved user avatar to Firebase")
-                self.authenticationState = .authenticated(user)
+            Task { @MainActor in
+                if let error = error {
+                    print("Failed to save avatar to Firebase: \(error.localizedDescription)")
+                    // Continue anyway - we can still use the app without Firebase persistence
+                    self.authenticationState = .authenticated(user)
+                } else {
+                    print("Successfully saved user avatar to Firebase")
+                    self.authenticationState = .authenticated(user)
+                }
             }
         }
     }
@@ -194,18 +196,35 @@ extension AuthenticationViewModel: ASAuthorizationControllerDelegate {
                 
                 // Update user profile if we have new information from Apple
                 let changeRequest = user.createProfileChangeRequest()
+                var shouldUpdateProfile = false
+                
                 if let fullName = appleIDCredential.fullName {
                     let displayName = PersonNameComponentsFormatter().string(from: fullName)
                     if !displayName.isEmpty {
                         changeRequest.displayName = displayName
+                        shouldUpdateProfile = true
+                        print("Setting display name to: \(displayName)")
                     }
                 }
                 
-                changeRequest.commitChanges { [weak self] error in
-                    if let error = error {
-                        print("Failed to update profile: \(error.localizedDescription)")
+                if shouldUpdateProfile {
+                    changeRequest.commitChanges { [weak self] error in
+                        if let error = error {
+                            print("Failed to update profile: \(error.localizedDescription)")
+                        } else {
+                            print("Successfully updated Firebase user profile")
+                        }
+                        
+                        // Reload the user to get updated information
+                        user.reload { [weak self] error in
+                            if let error = error {
+                                print("Failed to reload user: \(error.localizedDescription)")
+                            }
+                            self?.loadUserProfile(for: user)
+                        }
                     }
-                    self?.loadUserProfile(for: user)
+                } else {
+                    self.loadUserProfile(for: user)
                 }
             }
         }

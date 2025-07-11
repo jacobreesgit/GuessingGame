@@ -11,11 +11,10 @@ struct AvatarSelectionView: View {
         "😘", "😗", "😚", "😙", "🥲", "😋", "😛", "😜",
         "🤪", "😝", "🤑", "🤗", "🤭", "🤫", "🤔", "🤐",
         "🤨", "😐", "😑", "😶", "🙄", "😏", "😣", "😥",
-        "😮", "🤐", "😯", "😪", "😫", "😴", "😌", "😛",
-        "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶",
-        "😱", "😨", "😰", "😥", "😢", "😭", "😱", "😖",
-        "😣", "😞", "😓", "😩", "😫", "🥱", "😤", "😡",
-        "🤤", "😴", "😪", "🌛", "🌜", "🌚", "🌝", "🌞"
+        "😮", "😯", "😪", "😫", "😴", "😌", "😤", "😠",
+        "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😱", "😨",
+        "😰", "😢", "😭", "😖", "😞", "😓", "😩", "🥱",
+        "🤤", "🌛", "🌜", "🌚", "🌝", "🌞"
     ]
     
     var body: some View {
@@ -46,7 +45,8 @@ struct AvatarSelectionView: View {
             
             // Emoji Grid
             ScrollView {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 8), spacing: 12) {
+                let columns = Array(repeating: GridItem(.flexible()), count: 8)
+                LazyVGrid(columns: columns, spacing: 12) {
                     ForEach(emojis, id: \.self) { emoji in
                         Button(action: {
                             selectedEmoji = emoji
@@ -64,6 +64,7 @@ struct AvatarSelectionView: View {
                                 )
                         }
                         .buttonStyle(PlainButtonStyle())
+                        .id(emoji)
                     }
                 }
                 .padding()
