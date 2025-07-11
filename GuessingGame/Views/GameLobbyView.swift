@@ -5,15 +5,19 @@ struct GameLobbyView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showingLeaveConfirmation = false
     @State private var navigateToGameplay = false
+    @State private var shouldDismissToRoot = false
     let user: User
+    let onDismissToHome: (() -> Void)?
     
     init(user: User) {
         self.user = user
+        self.onDismissToHome = nil
         self._lobbyViewModel = StateObject(wrappedValue: GameLobbyViewModel(user: user))
     }
     
-    init(user: User, initialGameSession: GameSession) {
+    init(user: User, initialGameSession: GameSession, onDismissToHome: (() -> Void)? = nil) {
         self.user = user
+        self.onDismissToHome = onDismissToHome
         self._lobbyViewModel = StateObject(wrappedValue: GameLobbyViewModel(user: user, initialGameSession: initialGameSession))
     }
     
@@ -45,7 +49,7 @@ struct GameLobbyView: View {
                 Button("Cancel", role: .cancel) { }
                 Button("Leave", role: .destructive) {
                     lobbyViewModel.leaveGame()
-                    dismiss()
+                    shouldDismissToRoot = true
                 }
             } message: {
                 Text("Are you sure you want to leave this game?")
@@ -69,9 +73,15 @@ struct GameLobbyView: View {
                     navigateToGameplay = true
                 }
             }
+            .onChange(of: shouldDismissToRoot) { _, shouldDismiss in
+                if shouldDismiss {
+                    onDismissToHome?()
+                    dismiss()
+                }
+            }
             .fullScreenCover(isPresented: $navigateToGameplay) {
                 if let gameSession = lobbyViewModel.gameSession {
-                    GameplayView(user: user, gameSession: gameSession)
+                    GameplayView(user: user, gameSession: gameSession, onDismissToHome: onDismissToHome)
                 }
             }
         }

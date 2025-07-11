@@ -4,8 +4,10 @@ struct GameplayView: View {
     @StateObject private var gameplayViewModel: GameplayViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var showingLeaveConfirmation = false
+    let onDismissToHome: (() -> Void)?
     
-    init(user: User, gameSession: GameSession) {
+    init(user: User, gameSession: GameSession, onDismissToHome: (() -> Void)? = nil) {
+        self.onDismissToHome = onDismissToHome
         self._gameplayViewModel = StateObject(wrappedValue: GameplayViewModel(user: user, gameSession: gameSession))
     }
     
@@ -39,6 +41,7 @@ struct GameplayView: View {
                 Button("Cancel", role: .cancel) { }
                 Button("Leave", role: .destructive) {
                     gameplayViewModel.leaveGame()
+                    onDismissToHome?()
                     dismiss()
                 }
             } message: {

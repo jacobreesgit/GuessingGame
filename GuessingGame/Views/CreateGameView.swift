@@ -4,6 +4,7 @@ struct CreateGameView: View {
     @StateObject private var lobbyViewModel: GameLobbyViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var navigateToLobby = false
+    @State private var shouldDismissToHome = false
     let user: User
     
     init(user: User) {
@@ -110,9 +111,15 @@ struct CreateGameView: View {
                     navigateToLobby = true
                 }
             }
-            .fullScreenCover(isPresented: $navigateToLobby) {
+            .fullScreenCover(isPresented: $navigateToLobby, onDismiss: {
+                if shouldDismissToHome {
+                    dismiss()
+                }
+            }) {
                 if let gameSession = lobbyViewModel.gameSession {
-                    GameLobbyView(user: user, initialGameSession: gameSession)
+                    GameLobbyView(user: user, initialGameSession: gameSession) { 
+                        shouldDismissToHome = true
+                    }
                 }
             }
         }
