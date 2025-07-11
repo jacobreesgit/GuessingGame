@@ -19,7 +19,7 @@ struct JoinGameView: View {
                 VStack(spacing: 16) {
                     Image(systemName: "person.2.fill")
                         .font(.system(size: 60))
-                        .foregroundColor(.green)
+                        .foregroundColor(Color(UIColor.systemGreen))
                     
                     Text("Join Game")
                         .font(.largeTitle)
@@ -79,9 +79,10 @@ struct JoinGameView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(gameCode.count == 6 ? Color.green : Color.gray)
+                    .background(gameCode.count == 6 ? Color(UIColor.systemGreen) : Color(UIColor.systemGray3))
                     .foregroundColor(.white)
                     .cornerRadius(12)
+                    .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
                 }
                 .disabled(gameCode.count != 6 || lobbyViewModel.isLoading)
                 
@@ -93,6 +94,7 @@ struct JoinGameView: View {
                 .padding(.bottom, 20)
             }
             .padding()
+            .background(Color(UIColor.systemBackground))
             .navigationTitle("Join Game")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

@@ -18,7 +18,7 @@ struct CreateGameView: View {
                 VStack(spacing: 16) {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 60))
-                        .foregroundColor(.blue)
+                        .foregroundColor(Color(UIColor.systemBlue))
                     
                     Text("Create Game")
                         .font(.largeTitle)
@@ -37,21 +37,21 @@ struct CreateGameView: View {
                         icon: "person.2.fill",
                         title: "Players",
                         description: "2-8 players",
-                        color: .green
+                        color: Color(UIColor.systemGreen)
                     )
                     
                     InfoRowView(
                         icon: "clock.fill",
                         title: "Duration",
                         description: "5-15 minutes",
-                        color: .orange
+                        color: Color(UIColor.systemOrange)
                     )
                     
                     InfoRowView(
                         icon: "gamecontroller.fill",
                         title: "Game Mode",
                         description: "Multiplayer Guessing",
-                        color: .purple
+                        color: Color(UIColor.systemPurple)
                     )
                 }
                 
@@ -73,9 +73,10 @@ struct CreateGameView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(Color(UIColor.systemBlue))
                     .foregroundColor(.white)
                     .cornerRadius(12)
+                    .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
                 }
                 .disabled(lobbyViewModel.isLoading)
                 
@@ -87,6 +88,7 @@ struct CreateGameView: View {
                 .padding(.bottom, 20)
             }
             .padding()
+            .background(Color(UIColor.systemBackground))
             .navigationTitle("Create Game")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -142,7 +144,7 @@ struct InfoRowView: View {
             Spacer()
         }
         .padding()
-        .background(Color.gray.opacity(0.05))
+        .background(Color(UIColor.secondarySystemBackground))
         .cornerRadius(12)
     }
 }
