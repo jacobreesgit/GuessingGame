@@ -12,6 +12,11 @@ struct GameLobbyView: View {
         self._lobbyViewModel = StateObject(wrappedValue: GameLobbyViewModel(user: user))
     }
     
+    init(user: User, initialGameSession: GameSession) {
+        self.user = user
+        self._lobbyViewModel = StateObject(wrappedValue: GameLobbyViewModel(user: user, initialGameSession: initialGameSession))
+    }
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 24) {
@@ -93,10 +98,18 @@ struct GameLobbyView: View {
     
     private var gameCodeSection: some View {
         VStack(spacing: 12) {
-            Text("Game Code")
-                .font(.headline)
-                .foregroundColor(.secondary)
-                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+            HStack {
+                Text(lobbyViewModel.isHost ? "Your Game Code" : "Game Code")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                
+                if lobbyViewModel.isHost {
+                    Image(systemName: "crown.fill")
+                        .foregroundColor(.orange)
+                        .font(.caption)
+                }
+            }
             
             HStack {
                 Text(lobbyViewModel.gameCode)
@@ -109,27 +122,52 @@ struct GameLobbyView: View {
                     .accessibilityLabel("Game code: \(lobbyViewModel.gameCode.map { String($0) }.joined(separator: " "))")
                     .accessibilityHint("Six character game code for others to join")
                 
-                Button(action: {
-                    UIPasteboard.general.string = lobbyViewModel.gameCode
-                    // Add haptic feedback
-                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                    impactFeedback.impactOccurred()
-                }) {
-                    Image(systemName: "doc.on.doc")
-                        .foregroundColor(.blue)
-                        .imageScale(.large)
+                HStack(spacing: 12) {
+                    Button(action: {
+                        UIPasteboard.general.string = lobbyViewModel.gameCode
+                        // Add haptic feedback
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                        impactFeedback.impactOccurred()
+                    }) {
+                        Image(systemName: "doc.on.doc")
+                            .foregroundColor(.blue)
+                            .imageScale(.large)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Copy game code")
+                    .accessibilityHint("Copies the game code to clipboard")
+                    
+                    ShareLink(item: "Join my GuessingGame! Use code: \(lobbyViewModel.gameCode)") {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundColor(.blue)
+                            .imageScale(.large)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Share game code")
+                    .accessibilityHint("Opens share sheet to invite friends")
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Copy game code")
-                .accessibilityHint("Copies the game code to clipboard")
             }
             .padding()
             .background(Color(UIColor.secondarySystemBackground))
             .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(
+                        lobbyViewModel.isHost ? Color(UIColor.systemBlue).opacity(0.3) : Color.clear,
+                        lineWidth: 2
+                    )
+            )
+            .shadow(
+                color: lobbyViewModel.isHost ? Color(UIColor.systemBlue).opacity(0.1) : Color.clear,
+                radius: lobbyViewModel.isHost ? 4 : 0,
+                x: 0,
+                y: 2
+            )
             
-            Text("Share this code with friends to join")
+            Text(lobbyViewModel.isHost ? "Share this code with friends to join your game" : "Others can join using this code")
                 .font(.caption)
                 .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
         }
     }
     

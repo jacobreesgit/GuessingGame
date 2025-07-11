@@ -20,6 +20,15 @@ class GameLobbyViewModel: ObservableObject {
         self.currentUser = user
     }
     
+    init(user: User, initialGameSession: GameSession) {
+        self.currentUser = user
+        self.gameSession = initialGameSession
+        self.isConnected = true
+        
+        // Start listening to the existing session
+        startListening(to: initialGameSession.id)
+    }
+    
     deinit {
         if let listener = sessionListener {
             database.removeObserver(withHandle: listener)

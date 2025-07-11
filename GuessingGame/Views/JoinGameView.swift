@@ -117,7 +117,9 @@ struct JoinGameView: View {
                 }
             }
             .fullScreenCover(isPresented: $navigateToLobby) {
-                GameLobbyView(user: user)
+                if let gameSession = lobbyViewModel.gameSession {
+                    GameLobbyView(user: user, initialGameSession: gameSession)
+                }
             }
         }
     }
