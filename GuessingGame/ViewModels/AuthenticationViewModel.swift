@@ -61,15 +61,22 @@ class AuthenticationViewModel: NSObject, ObservableObject {
     }
     
     func signInWithApple() {
+        print("Starting Sign In with Apple process...")
+        errorMessage = "" // Clear any previous errors
+        
         let nonce = randomNonceString()
         currentNonce = nonce
         let request = ASAuthorizationAppleIDProvider().createRequest()
         request.requestedScopes = [.fullName, .email]
         request.nonce = sha256(nonce)
         
+        print("Created Apple ID request with nonce")
+        
         let authorizationController = ASAuthorizationController(authorizationRequests: [request])
         authorizationController.delegate = self
         authorizationController.presentationContextProvider = self
+        
+        print("About to perform Apple Sign In request...")
         authorizationController.performRequests()
     }
     

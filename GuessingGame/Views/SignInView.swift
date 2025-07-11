@@ -30,8 +30,13 @@ struct SignInView: View {
             // Sign In Section
             VStack(spacing: 20) {
                 if case .authenticating = authViewModel.authenticationState {
-                    ProgressView("Signing in...")
-                        .scaleEffect(1.2)
+                    HStack {
+                        Spacer()
+                        ProgressView("Signing in...")
+                            .scaleEffect(1.2)
+                        Spacer()
+                    }
+                    .frame(height: 50)
                 } else {
                     SignInWithAppleButton(.signIn) { request in
                         authViewModel.signInWithApple()
@@ -40,7 +45,6 @@ struct SignInView: View {
                     }
                     .signInWithAppleButtonStyle(.black)
                     .frame(height: 50)
-                    .frame(maxWidth: 375)
                     .cornerRadius(8)
                 }
                 
@@ -75,7 +79,8 @@ struct SignInView: View {
             
             Spacer()
         }
-        .padding()
+        .padding(.horizontal, 40)
+        .padding(.vertical)
         .background(
             LinearGradient(
                 gradient: Gradient(colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.1)]),
