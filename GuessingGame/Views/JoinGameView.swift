@@ -1,9 +1,11 @@
 import SwiftUI
+import Combine
 
 struct JoinGameView: View {
     @StateObject private var lobbyViewModel: GameLobbyViewModel
+    @StateObject private var joinGameViewModel: JoinGameViewModel
+    @ObservedObject private var networkMonitor = NetworkMonitor.shared
     @Environment(\.dismiss) private var dismiss
-    @State private var gameCode = ""
     @State private var navigateToLobby = false
     @State private var shouldDismissToHome = false
     let user: User
@@ -11,6 +13,7 @@ struct JoinGameView: View {
     init(user: User) {
         self.user = user
         self._lobbyViewModel = StateObject(wrappedValue: GameLobbyViewModel(user: user))
+        self._joinGameViewModel = StateObject(wrappedValue: JoinGameViewModel())
     }
     
     var body: some View {
@@ -22,11 +25,11 @@ struct JoinGameView: View {
                         .font(.system(size: 60))
                         .foregroundColor(Color(UIColor.systemGreen))
                     
-                    Text("Join Game")
+                    Text(Strings.Game.Join.title)
                         .font(.largeTitle)
                         .fontWeight(.bold)
                     
-                    Text("Enter the 6-character game code to join a multiplayer game")
+                    Text(Strings.Game.Join.description)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -35,28 +38,19 @@ struct JoinGameView: View {
                 
                 // Game Code Input
                 VStack(spacing: 16) {
-                    Text("Game Code")
+                    Text(Strings.Game.gameCode)
                         .font(.headline)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
-                    TextField("Enter game code", text: $gameCode)
+                    TextField(Strings.Game.Join.enterGameCode, text: $joinGameViewModel.gameCode)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .font(.title2)
                         .textCase(.uppercase)
                         .autocorrectionDisabled()
                         .keyboardType(.asciiCapable)
                         .frame(height: 50)
-                        .onChange(of: gameCode) { _, newValue in
-                            // Limit to 6 characters and make uppercase
-                            let filtered = newValue.uppercased().filter { $0.isLetter || $0.isNumber }
-                            if filtered.count <= 6 {
-                                gameCode = filtered
-                            } else {
-                                gameCode = String(filtered.prefix(6))
-                            }
-                        }
                     
-                    Text("Game codes are 6 characters long")
+                    Text(Strings.Game.Join.gameCodesSixCharacters)
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -64,9 +58,25 @@ struct JoinGameView: View {
                 
                 Spacer()
                 
+                // Offline Warning
+                if !networkMonitor.isConnected {
+                    HStack {
+                        Image(systemName: "wifi.slash")
+                            .foregroundColor(.orange)
+                        Text(Strings.Error.Game.needInternetConnection)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.horizontal)
+                }
+                
                 // Join Button
                 Button(action: {
-                    lobbyViewModel.joinGame(code: gameCode)
+                    if networkMonitor.isConnected {
+                        lobbyViewModel.joinGame(code: joinGameViewModel.gameCode)
+                    } else {
+                        joinGameViewModel.showOfflineError()
+                    }
                 }) {
                     HStack {
                         if lobbyViewModel.isLoading {
@@ -75,20 +85,20 @@ struct JoinGameView: View {
                                 .tint(.white)
                         }
                         
-                        Text(lobbyViewModel.isLoading ? "Joining..." : "Join Game")
+                        Text(lobbyViewModel.isLoading ? Strings.Game.Join.joining : Strings.Game.joinGame)
                             .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(gameCode.count == 6 ? Color(UIColor.systemGreen) : Color(UIColor.systemGray3))
+                    .background(joinGameViewModel.isValidGameCode && networkMonitor.isConnected ? Color(UIColor.systemGreen) : Color(UIColor.systemGray3))
                     .foregroundColor(.white)
                     .cornerRadius(12)
                     .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
                 }
-                .disabled(gameCode.count != 6 || lobbyViewModel.isLoading)
+                .disabled(!joinGameViewModel.isValidGameCode || lobbyViewModel.isLoading || !networkMonitor.isConnected)
                 
                 // Cancel Button
-                Button("Cancel") {
+                Button(Strings.cancel) {
                     dismiss()
                 }
                 .foregroundColor(.secondary)
@@ -96,21 +106,14 @@ struct JoinGameView: View {
             }
             .padding()
             .background(Color(UIColor.systemBackground))
-            .navigationTitle("Join Game")
+            .navigationTitle(Strings.Game.Join.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancel") {
+                    Button(Strings.cancel) {
                         dismiss()
                     }
                 }
-            }
-            .alert("Error", isPresented: .constant(!lobbyViewModel.errorMessage.isEmpty)) {
-                Button("OK") {
-                    lobbyViewModel.errorMessage = ""
-                }
-            } message: {
-                Text(lobbyViewModel.errorMessage)
             }
             .onChange(of: lobbyViewModel.isConnected) { _, connected in
                 if connected {
@@ -133,8 +136,39 @@ struct JoinGameView: View {
     
 }
 
-struct JoinGameView_Previews: PreviewProvider {
-    static var previews: some View {
-        JoinGameView(user: User(id: "1", displayName: "Test User", avatar: "😀"))
-    }
+// MARK: - Previews
+#Preview("Default State") {
+    JoinGameView(user: User(id: "1", displayName: "John Doe", email: "john@example.com", avatar: "😀"))
+}
+
+#Preview("Long Display Name") {
+    JoinGameView(user: User(id: "1", displayName: "Alexander Maximilian", email: "alex@example.com", avatar: "👑"))
+}
+
+#Preview("Different Avatar") {
+    JoinGameView(user: User(id: "1", displayName: "Player Two", email: "player2@example.com", avatar: "🎯"))
+}
+
+#Preview("Dark Mode") {
+    JoinGameView(user: User(id: "1", displayName: "Night Joiner", email: "night@example.com", avatar: "🌙"))
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Large Text") {
+    JoinGameView(user: User(id: "1", displayName: "Accessible User", email: "access@example.com", avatar: "♿️"))
+        .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
+}
+
+#Preview("Small Screen") {
+    JoinGameView(user: User(id: "1", displayName: "Compact", email: "small@example.com", avatar: "📱"))
+}
+
+#Preview("Code Partially Entered") {
+    // Note: Would need to pre-populate game code for this preview
+    JoinGameView(user: User(id: "1", displayName: "Typing User", email: "type@example.com", avatar: "⌨️"))
+}
+
+#Preview("Loading State") {
+    // Note: Would need to mock loading state in real implementation
+    JoinGameView(user: User(id: "1", displayName: "Joining User", email: "join@example.com", avatar: "⏳"))
 }

@@ -1,0 +1,168 @@
+/* App Name and Common */
+"app_name" = "Guessing Game";
+"cancel" = "Cancel";
+"done" = "Done";
+"ok" = "OK";
+"retry" = "Retry";
+"close" = "Close";
+"continue" = "Continue";
+
+/* Authentication */
+"sign_in_with_apple" = "Sign In with Apple";
+"sign_out" = "Sign Out";
+"sign_out_confirmation_title" = "Sign Out";
+"sign_out_confirmation_message" = "Are you sure you want to sign out?";
+"signing_in" = "Signing in...";
+"authentication_failed" = "Authentication failed";
+
+/* Profile */
+"profile" = "Profile";
+"tap_avatar_to_change" = "Tap avatar to change";
+"privacy_policy" = "Privacy Policy";
+"terms_of_service" = "Terms of Service";
+"version" = "Version";
+"coming_soon" = "Coming Soon";
+"privacy_policy_placeholder" = "Our Privacy Policy will be available soon.";
+"terms_of_service_placeholder" = "Our Terms of Service will be available soon.";
+
+/* Game */
+"create_game" = "Create Game";
+"join_game" = "Join Game";
+"game_history" = "Game History";
+"game_code" = "Game Code";
+"your_game_code" = "Your Game Code";
+"share_code_message" = "Share this code with friends to join your game";
+"players" = "Players";
+"start_game" = "Start Game";
+"leave_game" = "Leave Game";
+"leave_game_confirmation" = "Are you sure you want to leave this game?";
+
+/* Game Creation */
+"create_game_title" = "Create Game";
+"create_game_description" = "Start a new guessing game";
+"duration" = "Duration";
+"game_mode" = "Game Mode";
+"multiplayer_guessing" = "Multiplayer Guessing";
+"creating" = "Creating...";
+
+/* Game Joining */
+"join_game_title" = "Join Game";
+"join_game_description" = "Enter a game code to join";
+"enter_game_code" = "Enter game code";
+"game_codes_six_characters" = "Game codes are 6 characters long";
+"joining" = "Joining...";
+
+/* Gameplay */
+"your_turn" = "Your Turn!";
+"wait_for_turn" = "Wait for your turn";
+"ask_question" = "Ask";
+"make_guess" = "Make a Guess";
+"skip_turn" = "Skip Turn";
+"time_remaining" = "Time Remaining";
+"hurry_up" = "Hurry up!";
+"game_over" = "Game Over!";
+"play_again" = "Play Again";
+"back_to_lobby" = "Back to Lobby";
+
+/* Errors */
+"error" = "Error";
+"network_error" = "Network Error";
+"connection_failed" = "Connection failed. Please check your internet connection.";
+"offline_mode" = "You're Offline";
+"offline_message" = "Some features may not be available while you're offline.";
+"firebase_error" = "Service Error";
+"try_again_later" = "Please try again later.";
+"unknown_error" = "An unexpected error occurred.";
+
+/* Alerts */
+"need_internet_connection" = "Internet connection required for multiplayer features.";
+"failed_to_create_game" = "Failed to create game";
+"failed_to_join_game" = "Failed to join game";
+"game_session_not_found" = "Game session not found. Please check the code and try again.";
+"game_already_started" = "This game has already started";
+"already_in_game" = "You're already in this game";
+"only_host_can_start" = "Only the host can start the game";
+"need_two_players" = "Need at least 2 players to start";
+
+/* Gameplay */
+"loading" = "Loading...";
+"leave" = "Leave";
+"leave_game" = "Leave Game";
+"leave_game_confirmation" = "Are you sure you want to leave this game?";
+"waiting_for_secret_word" = "Waiting for Secret Word";
+"answerer_choosing_word" = "The answerer is choosing a category and secret word";
+"is_the_answerer" = " is the Answerer";
+"round" = "Round ";
+"please_wait" = "Please wait...";
+"your_turn" = "Your Turn";
+"wait" = "Wait";
+"game_over" = "Game Over!";
+"wins" = " Wins!";
+"congratulations" = "Congratulations! 🎊";
+"better_luck_next_time" = "Better luck next time!";
+"game_ended" = "Game Ended";
+"player_left_game" = "A player left the game";
+"game_summary" = "Game Summary";
+"category" = "Category";
+"secret_word" = "Secret Word";
+"questions_asked" = "Questions Asked";
+"starting_new_game" = "Starting new game...";
+"back_to_lobby" = "Back to Lobby";
+"waiting_for_host" = "Waiting for host to choose next action...";
+
+/* Game Lobby */
+"not_connected_to_game" = "Not connected to any game";
+"game_lobby" = "Game Lobby";
+"host_transfer" = "Host Transfer";
+"share_code_message" = "Join my Guessing Game! Use code: ";
+"share_instructions_simple" = "Share this code with friends to join!";
+"share_instructions_detailed" = "Send this code to your friends so they can join your game";
+"host_badge" = "HOST";
+"joined_prefix" = "Joined ";
+
+/* Answerer */
+"youre_the_answerer" = "You're the Answerer!";
+"choose_category_and_word" = "Choose a category and secret word for the guessers";
+"choose_secret_word" = "Choose Secret Word";
+"select_category" = "Select a Category";
+"back" = "← Back";
+"category_prefix" = "Category: ";
+"choose_from_suggestions" = "Choose from suggestions";
+"enter_custom_word" = "Enter custom word";
+"confirm_secret_word" = "Confirm Secret Word";
+"choose_word_prompt" = "Choose a word:";
+"enter_own_word_prompt" = "Enter your own word:";
+"type_secret_word_placeholder" = "Type your secret word...";
+"category_validation_prefix" = "Make sure it fits the \"";
+"category_validation_suffix" = "\" category!";
+
+/* Guesser */
+"guessing_game" = "Guessing Game";
+"make_your_guess" = "Make Your Guess";
+"enter_guess_placeholder" = "Enter your guess...";
+"submit_guess" = "Submit Guess";
+"guess_instruction" = "Think you know the secret word? Enter your guess below!";
+"turn_suffix" = "'s turn";
+"time_remaining" = "Time Remaining";
+"seconds_suffix" = "s";
+"hurry_up" = "Hurry up!";
+"category_label" = "Category:";
+"questions_and_answers" = "Questions & Answers";
+"ask_question_placeholder" = "Ask a yes/no question...";
+"ask" = "Ask";
+"ask_instruction" = "Ask questions that can be answered with Yes or No";
+"make_guess" = "Make a Guess";
+"skip_turn" = "Skip Turn";
+"react_label" = "React:";
+"more" = "More";
+"pick_emoji" = "Pick an Emoji";
+"question_prefix" = "Q: ";
+"answer_prefix" = "A: ";
+"waiting_for_answer" = "Waiting for answer...";
+"answer_question_header" = "🎯 Answer this question:";
+"asked_by_prefix" = "Asked by ";
+"yes" = "Yes";
+"no" = "No";
+"custom_answer_prompt" = "Or provide a custom answer:";
+"type_answer_placeholder" = "Type your answer...";
+"submit" = "Submit";

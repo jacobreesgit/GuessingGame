@@ -204,7 +204,7 @@ struct Question: Codable, Identifiable, Equatable {
     }
     
     static func fromDictionary(_ dict: [String: Any]) -> Question? {
-        guard let id = dict["id"] as? String,
+        guard let _ = dict["id"] as? String,
               let askerID = dict["askerID"] as? String,
               let askerName = dict["askerName"] as? String,
               let question = dict["question"] as? String,

@@ -1,7 +1,10 @@
 import SwiftUI
+import Combine
 
 struct CreateGameView: View {
     @StateObject private var lobbyViewModel: GameLobbyViewModel
+    @StateObject private var createGameViewModel: CreateGameViewModel
+    @ObservedObject private var networkMonitor = NetworkMonitor.shared
     @Environment(\.dismiss) private var dismiss
     @State private var navigateToLobby = false
     @State private var shouldDismissToHome = false
@@ -10,6 +13,7 @@ struct CreateGameView: View {
     init(user: User) {
         self.user = user
         self._lobbyViewModel = StateObject(wrappedValue: GameLobbyViewModel(user: user))
+        self._createGameViewModel = StateObject(wrappedValue: CreateGameViewModel())
     }
     
     var body: some View {
@@ -21,11 +25,11 @@ struct CreateGameView: View {
                         .font(.system(size: 60))
                         .foregroundColor(Color(UIColor.systemBlue))
                     
-                    Text("Create Game")
+                    Text(Strings.Game.Create.title)
                         .font(.largeTitle)
                         .fontWeight(.bold)
                     
-                    Text("Start a new multiplayer guessing game and invite your friends to join")
+                    Text(Strings.Game.Create.description)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -36,31 +40,47 @@ struct CreateGameView: View {
                 VStack(spacing: 20) {
                     InfoRowView(
                         icon: "person.2.fill",
-                        title: "Players",
+                        title: Strings.Game.players,
                         description: "2-8 players",
                         color: Color(UIColor.systemGreen)
                     )
                     
                     InfoRowView(
                         icon: "clock.fill",
-                        title: "Duration",
+                        title: Strings.Game.Create.duration,
                         description: "5-15 minutes",
                         color: Color(UIColor.systemOrange)
                     )
                     
                     InfoRowView(
                         icon: "gamecontroller.fill",
-                        title: "Game Mode",
-                        description: "Multiplayer Guessing",
+                        title: Strings.Game.Create.gameMode,
+                        description: Strings.Game.Create.multiplayerGuessing,
                         color: Color(UIColor.systemPurple)
                     )
                 }
                 
                 Spacer()
                 
+                // Offline Warning
+                if !networkMonitor.isConnected {
+                    HStack {
+                        Image(systemName: "wifi.slash")
+                            .foregroundColor(.orange)
+                        Text(Strings.Error.Game.needInternetConnection)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.horizontal)
+                }
+                
                 // Create Game Button
                 Button(action: {
-                    lobbyViewModel.createGame()
+                    if networkMonitor.isConnected {
+                        lobbyViewModel.createGame()
+                    } else {
+                        createGameViewModel.showOfflineError()
+                    }
                 }) {
                     HStack {
                         if lobbyViewModel.isLoading {
@@ -69,7 +89,7 @@ struct CreateGameView: View {
                                 .tint(.white)
                         }
                         
-                        Text(lobbyViewModel.isLoading ? "Creating..." : "Create Game")
+                        Text(lobbyViewModel.isLoading ? Strings.Game.Create.creating : Strings.Game.createGame)
                             .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity)
@@ -79,10 +99,10 @@ struct CreateGameView: View {
                     .cornerRadius(12)
                     .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
                 }
-                .disabled(lobbyViewModel.isLoading)
+                .disabled(lobbyViewModel.isLoading || !networkMonitor.isConnected)
                 
                 // Cancel Button
-                Button("Cancel") {
+                Button(Strings.cancel) {
                     dismiss()
                 }
                 .foregroundColor(.secondary)
@@ -90,21 +110,14 @@ struct CreateGameView: View {
             }
             .padding()
             .background(Color(UIColor.systemBackground))
-            .navigationTitle("Create Game")
+            .navigationTitle(Strings.Game.Create.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancel") {
+                    Button(Strings.cancel) {
                         dismiss()
                     }
                 }
-            }
-            .alert("Error", isPresented: .constant(!lobbyViewModel.errorMessage.isEmpty)) {
-                Button("OK") {
-                    lobbyViewModel.errorMessage = ""
-                }
-            } message: {
-                Text(lobbyViewModel.errorMessage)
             }
             .onChange(of: lobbyViewModel.isConnected) { _, connected in
                 if connected {
@@ -129,8 +142,8 @@ struct CreateGameView: View {
 
 struct InfoRowView: View {
     let icon: String
-    let title: String
-    let description: String
+    let title: LocalizedStringKey
+    let description: LocalizedStringKey
     let color: Color
     
     var body: some View {
@@ -158,8 +171,34 @@ struct InfoRowView: View {
     }
 }
 
-struct CreateGameView_Previews: PreviewProvider {
-    static var previews: some View {
-        CreateGameView(user: User(id: "1", displayName: "Test User", avatar: "😀"))
-    }
+// MARK: - Previews
+#Preview("Default State") {
+    CreateGameView(user: User(id: "1", displayName: "John Doe", email: "john@example.com", avatar: "😀"))
+}
+
+#Preview("Long Display Name") {
+    CreateGameView(user: User(id: "1", displayName: "Alexander Maximilian", email: "alex@example.com", avatar: "👑"))
+}
+
+#Preview("Different Avatar") {
+    CreateGameView(user: User(id: "1", displayName: "Gamer Pro", email: "pro@example.com", avatar: "🎮"))
+}
+
+#Preview("Dark Mode") {
+    CreateGameView(user: User(id: "1", displayName: "Night Player", email: "night@example.com", avatar: "🌙"))
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Large Text") {
+    CreateGameView(user: User(id: "1", displayName: "Accessible User", email: "access@example.com", avatar: "♿️"))
+        .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
+}
+
+#Preview("Small Screen") {
+    CreateGameView(user: User(id: "1", displayName: "Compact", email: "small@example.com", avatar: "📱"))
+}
+
+#Preview("Loading State") {
+    // Note: Would need to mock loading state in real implementation
+    CreateGameView(user: User(id: "1", displayName: "Loading User", email: "load@example.com", avatar: "⏳"))
 }

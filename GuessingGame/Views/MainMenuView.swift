@@ -33,7 +33,7 @@ struct MainMenuView: View {
                         }
                     }
                     
-                    Text("GuessingGame")
+                    Text(Strings.appName)
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.primary)
@@ -52,11 +52,11 @@ struct MainMenuView: View {
                                 .font(.title2)
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Create Game")
+                                Text(Strings.Game.createGame)
                                     .font(.headline)
                                     .fontWeight(.semibold)
                                 
-                                Text("Start a new guessing game")
+                                Text(Strings.Game.Create.description)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -83,11 +83,11 @@ struct MainMenuView: View {
                                 .font(.title2)
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Join Game")
+                                Text(Strings.Game.joinGame)
                                     .font(.headline)
                                     .fontWeight(.semibold)
                                 
-                                Text("Enter a game code to join")
+                                Text(Strings.Game.Join.description)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -114,7 +114,7 @@ struct MainMenuView: View {
                                 .font(.title2)
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Game History")
+                                Text(Strings.Game.gameHistory)
                                     .font(.headline)
                                     .fontWeight(.semibold)
                                 
@@ -138,17 +138,6 @@ struct MainMenuView: View {
                 }
                 
                 Spacer()
-                
-                // App Info
-                VStack(spacing: 8) {
-                    Text("GuessingGame v1.0")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Text("Made with ❤️ for fun!")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
             }
             .padding()
             .sheet(isPresented: $showingProfile) {
@@ -164,72 +153,62 @@ struct MainMenuView: View {
     }
 }
 
-struct ProfileView: View {
-    @ObservedObject var authViewModel: AuthenticationViewModel
-    let user: User
-    @Environment(\.dismiss) private var dismiss
-    @State private var showingAvatarSelection = false
-    
-    var body: some View {
-        NavigationView {
-            VStack(spacing: 30) {
-                // Avatar and Name
-                VStack(spacing: 16) {
-                    Button(action: {
-                        showingAvatarSelection = true
-                    }) {
-                        Text(user.avatar)
-                            .font(.system(size: 80))
-                            .padding()
-                            .background(Circle().fill(Color.gray.opacity(0.1)))
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.blue, lineWidth: 2)
-                            )
-                    }
-                    
-                    Text(user.displayName)
-                        .font(.title)
-                        .fontWeight(.bold)
-                    
-                    if let email = user.email {
-                        Text(email)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Text("Tap avatar to change")
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                }
-                
-                Spacer()
-                
-                // Sign Out Button
-                Button(action: {
-                    authViewModel.signOut()
-                    dismiss()
-                }) {
-                    Text("Sign Out")
-                        .font(.headline)
-                        .foregroundColor(.red)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.red.opacity(0.1))
-                        .cornerRadius(12)
-                }
-            }
-            .padding()
-            .navigationTitle("Profile")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") { dismiss() }
-                }
-            }
-            .sheet(isPresented: $showingAvatarSelection) {
-                AvatarSelectionView(authViewModel: authViewModel, user: user)
-            }
-        }
-    }
+// MARK: - Previews
+#Preview("Default User") {
+    MainMenuView(
+        authViewModel: AuthenticationViewModel(),
+        user: User(id: "1", displayName: "John Doe", email: "john@example.com", avatar: "😀")
+    )
 }
+
+#Preview("Long Display Name") {
+    MainMenuView(
+        authViewModel: AuthenticationViewModel(),
+        user: User(id: "1", displayName: "Alexander Maximilian", email: "alex@example.com", avatar: "👑")
+    )
+}
+
+#Preview("No Email") {
+    MainMenuView(
+        authViewModel: AuthenticationViewModel(),
+        user: User(id: "1", displayName: "Anonymous", email: nil, avatar: "🎭")
+    )
+}
+
+#Preview("Different Avatars") {
+    MainMenuView(
+        authViewModel: AuthenticationViewModel(),
+        user: User(id: "1", displayName: "Gamer", email: "gamer@example.com", avatar: "🎮")
+    )
+}
+
+#Preview("Dark Mode") {
+    MainMenuView(
+        authViewModel: AuthenticationViewModel(),
+        user: User(id: "1", displayName: "Night Owl", email: "night@example.com", avatar: "🦉")
+    )
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Large Text") {
+    MainMenuView(
+        authViewModel: AuthenticationViewModel(),
+        user: User(id: "1", displayName: "Accessible User", email: "access@example.com", avatar: "♿️")
+    )
+    .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
+}
+
+#Preview("Small Screen") {
+    MainMenuView(
+        authViewModel: AuthenticationViewModel(),
+        user: User(id: "1", displayName: "Compact", email: "small@example.com", avatar: "📱")
+    )
+}
+
+#Preview("Landscape") {
+    MainMenuView(
+        authViewModel: AuthenticationViewModel(),
+        user: User(id: "1", displayName: "Landscape User", email: "wide@example.com", avatar: "📺")
+    )
+}
+

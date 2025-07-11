@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#007AFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0051D5;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="230" ry="230" fill="url(#grad1)"/>
+  
+  <!-- Game Controller -->
+  <g transform="translate(512,512)" filter="url(#shadow)">
+    <!-- Controller Body -->
+    <rect x="-200" y="-80" width="400" height="160" rx="80" ry="80" fill="white" stroke="#E0E0E0" stroke-width="4"/>
+    
+    <!-- D-Pad (Left Side) -->
+    <g transform="translate(-120,0)">
+      <!-- Horizontal bar -->
+      <rect x="-30" y="-8" width="60" height="16" rx="8" ry="8" fill="#007AFF"/>
+      <!-- Vertical bar -->
+      <rect x="-8" y="-30" width="16" height="60" rx="8" ry="8" fill="#007AFF"/>
+    </g>
+    
+    <!-- Action Buttons (Right Side) -->
+    <g transform="translate(120,0)">
+      <!-- Top button (Triangle) -->
+      <polygon points="0,-35 -20,-10 20,-10" fill="#34C759"/>
+      <!-- Right button (Circle) -->
+      <circle cx="25" cy="0" r="15" fill="#FF3B30"/>
+      <!-- Bottom button (X) -->
+      <g transform="translate(0,35)">
+        <line x1="-12" y1="-12" x2="12" y2="12" stroke="#007AFF" stroke-width="6" stroke-linecap="round"/>
+        <line x1="-12" y1="12" x2="12" y2="-12" stroke="#007AFF" stroke-width="6" stroke-linecap="round"/>
+      </g>
+      <!-- Left button (Square) -->
+      <rect x="-40" y="-10" width="20" height="20" rx="3" ry="3" fill="#FF9500"/>
+    </g>
+    
+    <!-- Question Mark Symbol -->
+    <g transform="translate(0,-180)">
+      <circle cx="0" cy="0" r="40" fill="white" opacity="0.9"/>
+      <text x="0" y="15" text-anchor="middle" font-family="SF Pro Display, -apple-system, sans-serif" 
+            font-size="60" font-weight="bold" fill="#007AFF">?</text>
+    </g>
+  </g>
+</svg>

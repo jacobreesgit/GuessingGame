@@ -288,11 +288,85 @@ struct GameSummaryRow: View {
     }
 }
 
-struct GameplayView_Previews: PreviewProvider {
-    static var previews: some View {
-        let user = User(id: "1", displayName: "Test User", avatar: "😀")
-        let session = GameSession(id: "ABC123", hostId: "1", hostPlayer: GamePlayer(id: "1", displayName: "Test User", avatar: "😀"))
-        
-        GameplayView(user: user, gameSession: session)
-    }
+// MARK: - Previews
+#Preview("Setup Phase - Answerer") {
+    GameplayView(
+        user: PreviewData.sampleUser,
+        gameSession: PreviewData.setupPhaseGameSession,
+        onDismissToHome: {}
+    )
+}
+
+#Preview("Setup Phase - Guesser") {
+    GameplayView(
+        user: PreviewData.player2.toUser(),
+        gameSession: PreviewData.setupPhaseGameSession,
+        onDismissToHome: {}
+    )
+}
+
+#Preview("Questioning Phase - Answerer") {
+    GameplayView(
+        user: PreviewData.sampleUser,
+        gameSession: PreviewData.startedGameSession,
+        onDismissToHome: {}
+    )
+}
+
+#Preview("Questioning Phase - Guesser") {
+    GameplayView(
+        user: PreviewData.player2.toUser(),
+        gameSession: PreviewData.startedGameSession,
+        onDismissToHome: {}
+    )
+}
+
+#Preview("Many Questions") {
+    GameplayView(
+        user: PreviewData.player2.toUser(),
+        gameSession: PreviewData.sessionWithManyQuestions,
+        onDismissToHome: {}
+    )
+}
+
+#Preview("Game Over - Winner") {
+    GameplayView(
+        user: PreviewData.sampleUser,
+        gameSession: PreviewData.gameOverSession,
+        onDismissToHome: {}
+    )
+}
+
+#Preview("Game Over - Loser") {
+    GameplayView(
+        user: PreviewData.player2.toUser(),
+        gameSession: PreviewData.gameOverSession,
+        onDismissToHome: {}
+    )
+}
+
+#Preview("Dark Mode") {
+    GameplayView(
+        user: PreviewData.sampleUser,
+        gameSession: PreviewData.startedGameSession,
+        onDismissToHome: {}
+    )
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Large Text") {
+    GameplayView(
+        user: PreviewData.sampleUser,
+        gameSession: PreviewData.sessionWithManyQuestions,
+        onDismissToHome: {}
+    )
+    .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
+}
+
+#Preview("Small Screen") {
+    GameplayView(
+        user: PreviewData.sampleUser,
+        gameSession: PreviewData.startedGameSession,
+        onDismissToHome: {}
+    )
 }

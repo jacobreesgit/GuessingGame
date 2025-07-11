@@ -308,9 +308,71 @@ struct PlayerRowView: View {
     }
 }
 
-// MARK: - Preview
-struct GameLobbyView_Previews: PreviewProvider {
-    static var previews: some View {
-        GameLobbyView(user: User(id: "1", displayName: "Test User", avatar: "😀"))
-    }
+// MARK: - Previews
+#Preview("Empty Lobby - Host") {
+    GameLobbyView(
+        user: PreviewData.sampleUser,
+        initialGameSession: PreviewData.emptyGameSession,
+        onDismissToHome: {}
+    )
 }
+
+#Preview("Two Players - Host") {
+    GameLobbyView(
+        user: PreviewData.sampleUser,
+        initialGameSession: PreviewData.twoPlayerSession,
+        onDismissToHome: {}
+    )
+}
+
+#Preview("Full Lobby - Host") {
+    GameLobbyView(
+        user: PreviewData.sampleUser,
+        initialGameSession: PreviewData.fullLobbySession,
+        onDismissToHome: {}
+    )
+}
+
+#Preview("Two Players - Guest") {
+    GameLobbyView(
+        user: PreviewData.player2.toUser(),
+        initialGameSession: PreviewData.twoPlayerSession,
+        onDismissToHome: {}
+    )
+}
+
+#Preview("Long Names") {
+    let session = GameSession(id: "LONG123", hostId: "4", hostPlayer: PreviewData.longNamePlayer)
+    return GameLobbyView(
+        user: PreviewData.longNameUser,
+        initialGameSession: session,
+        onDismissToHome: {}
+    )
+}
+
+#Preview("Dark Mode") {
+    GameLobbyView(
+        user: PreviewData.sampleUser,
+        initialGameSession: PreviewData.twoPlayerSession,
+        onDismissToHome: {}
+    )
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Large Text") {
+    GameLobbyView(
+        user: PreviewData.sampleUser,
+        initialGameSession: PreviewData.fullLobbySession,
+        onDismissToHome: {}
+    )
+    .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
+}
+
+#Preview("Small Screen") {
+    GameLobbyView(
+        user: PreviewData.sampleUser,
+        initialGameSession: PreviewData.twoPlayerSession,
+        onDismissToHome: {}
+    )
+}
+

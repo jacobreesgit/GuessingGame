@@ -218,12 +218,44 @@ struct AnswererView: View {
     }
 }
 
-struct AnswererView_Previews: PreviewProvider {
-    static var previews: some View {
-        let user = User(id: "1", displayName: "Test User", avatar: "😀")
-        let session = GameSession(id: "ABC123", hostId: "1", hostPlayer: GamePlayer(id: "1", displayName: "Test User", avatar: "😀"))
-        let viewModel = GameplayViewModel(user: user, gameSession: session)
-        
-        AnswererView(gameplayViewModel: viewModel)
-    }
+// MARK: - Previews
+#Preview("Category Selection") {
+    let viewModel = GameplayViewModel(user: PreviewData.sampleUser, gameSession: PreviewData.setupPhaseGameSession)
+    return AnswererView(gameplayViewModel: viewModel)
+}
+
+#Preview("Word Selection - Animals") {
+    let viewModel = GameplayViewModel(user: PreviewData.sampleUser, gameSession: PreviewData.setupPhaseGameSession)
+    // Note: Would need to mock category selection state
+    return AnswererView(gameplayViewModel: viewModel)
+}
+
+#Preview("Custom Word Entry") {
+    let viewModel = GameplayViewModel(user: PreviewData.sampleUser, gameSession: PreviewData.setupPhaseGameSession)
+    // Note: Would need to mock custom word state
+    return AnswererView(gameplayViewModel: viewModel)
+}
+
+#Preview("Round 2") {
+    var session = PreviewData.setupPhaseGameSession
+    session.gameState?.roundNumber = 2
+    let viewModel = GameplayViewModel(user: PreviewData.sampleUser, gameSession: session)
+    return AnswererView(gameplayViewModel: viewModel)
+}
+
+#Preview("Dark Mode") {
+    let viewModel = GameplayViewModel(user: PreviewData.sampleUser, gameSession: PreviewData.setupPhaseGameSession)
+    return AnswererView(gameplayViewModel: viewModel)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Large Text") {
+    let viewModel = GameplayViewModel(user: PreviewData.sampleUser, gameSession: PreviewData.setupPhaseGameSession)
+    return AnswererView(gameplayViewModel: viewModel)
+        .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
+}
+
+#Preview("Small Screen") {
+    let viewModel = GameplayViewModel(user: PreviewData.sampleUser, gameSession: PreviewData.setupPhaseGameSession)
+    return AnswererView(gameplayViewModel: viewModel)
 }

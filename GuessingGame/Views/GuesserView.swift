@@ -496,12 +496,61 @@ struct AnswerInputView: View {
     }
 }
 
-struct GuesserView_Previews: PreviewProvider {
-    static var previews: some View {
-        let user = User(id: "1", displayName: "Test User", avatar: "😀")
-        let session = GameSession(id: "ABC123", hostId: "1", hostPlayer: GamePlayer(id: "1", displayName: "Test User", avatar: "😀"))
-        let viewModel = GameplayViewModel(user: user, gameSession: session)
-        
-        GuesserView(gameplayViewModel: viewModel)
-    }
+// MARK: - Previews
+#Preview("Player Turn") {
+    let viewModel = GameplayViewModel(user: PreviewData.player2.toUser(), gameSession: PreviewData.startedGameSession)
+    return GuesserView(gameplayViewModel: viewModel)
+}
+
+#Preview("Waiting for Turn") {
+    let session = PreviewData.startedGameSession
+    // Mock different player's turn
+    let viewModel = GameplayViewModel(user: PreviewData.player3.toUser(), gameSession: session)
+    return GuesserView(gameplayViewModel: viewModel)
+}
+
+#Preview("Many Questions") {
+    let viewModel = GameplayViewModel(user: PreviewData.player2.toUser(), gameSession: PreviewData.sessionWithManyQuestions)
+    return GuesserView(gameplayViewModel: viewModel)
+}
+
+#Preview("Time Running Out") {
+    let viewModel = GameplayViewModel(user: PreviewData.player2.toUser(), gameSession: PreviewData.startedGameSession)
+    return GuesserView(gameplayViewModel: viewModel)
+}
+
+#Preview("No Questions Yet") {
+    var session = PreviewData.startedGameSession
+    session.gameState?.questions = []
+    let viewModel = GameplayViewModel(user: PreviewData.player2.toUser(), gameSession: session)
+    return GuesserView(gameplayViewModel: viewModel)
+}
+
+#Preview("Round 3") {
+    var session = PreviewData.startedGameSession
+    session.gameState?.roundNumber = 3
+    let viewModel = GameplayViewModel(user: PreviewData.player2.toUser(), gameSession: session)
+    return GuesserView(gameplayViewModel: viewModel)
+}
+
+#Preview("Dark Mode") {
+    let viewModel = GameplayViewModel(user: PreviewData.player2.toUser(), gameSession: PreviewData.startedGameSession)
+    return GuesserView(gameplayViewModel: viewModel)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Large Text") {
+    let viewModel = GameplayViewModel(user: PreviewData.player2.toUser(), gameSession: PreviewData.sessionWithManyQuestions)
+    return GuesserView(gameplayViewModel: viewModel)
+        .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
+}
+
+#Preview("Small Screen") {
+    let viewModel = GameplayViewModel(user: PreviewData.player2.toUser(), gameSession: PreviewData.startedGameSession)
+    return GuesserView(gameplayViewModel: viewModel)
+}
+
+#Preview("Landscape") {
+    let viewModel = GameplayViewModel(user: PreviewData.player2.toUser(), gameSession: PreviewData.sessionWithManyQuestions)
+    return GuesserView(gameplayViewModel: viewModel)
 }

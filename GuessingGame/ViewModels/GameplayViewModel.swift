@@ -26,9 +26,7 @@ class GameplayViewModel: ObservableObject {
         if let listener = sessionListener {
             database.removeObserver(withHandle: listener)
         }
-        Task { @MainActor in
-            stopTurnTimer()
-        }
+        turnTimer?.invalidate()
     }
     
     // MARK: - Game Management
@@ -190,8 +188,8 @@ class GameplayViewModel: ObservableObject {
                 } else {
                     // Update player roles
                     let roleUpdates = updatedSession.playerRoles.mapValues { $0.rawValue }
-                    self?.database.child("sessions").child(session.id).child("playerRoles").setValue(roleUpdates) { error, _ in
-                        Task { @MainActor in
+                    self?.database.child("sessions").child(session.id).child("playerRoles").setValue(roleUpdates) { [weak self] error, _ in
+                        DispatchQueue.main.async {
                             self?.isLoading = false
                             if let error = error {
                                 self?.errorMessage = "Failed to update roles: \(error.localizedDescription)"

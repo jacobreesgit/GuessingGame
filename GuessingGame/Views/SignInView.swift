@@ -1,8 +1,18 @@
 import SwiftUI
 import AuthenticationServices
+import Combine
 
 struct SignInView: View {
     @ObservedObject var authViewModel: AuthenticationViewModel
+    @StateObject private var signInViewModel = SignInViewModel()
+    @ObservedObject private var networkMonitor = NetworkMonitor.shared
+    @State private var showingLegalDocument = false
+    @State private var legalDocumentType: LegalDocumentType = .termsOfService
+    
+    enum LegalDocumentType {
+        case termsOfService
+        case privacyPolicy
+    }
     
     var body: some View {
         VStack(spacing: 40) {
@@ -14,7 +24,7 @@ struct SignInView: View {
                     .font(.system(size: 80))
                     .foregroundColor(.blue)
                 
-                Text("GuessingGame")
+                Text(Strings.appName)
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
@@ -32,20 +42,37 @@ struct SignInView: View {
                 if case .authenticating = authViewModel.authenticationState {
                     HStack {
                         Spacer()
-                        ProgressView("Signing in...")
+                        ProgressView(Strings.Auth.signingIn)
                             .scaleEffect(1.2)
                         Spacer()
                     }
                     .frame(height: 50)
                 } else {
                     SignInWithAppleButton(.signIn) { request in
-                        authViewModel.signInWithApple()
+                        if networkMonitor.isConnected {
+                            authViewModel.signInWithApple()
+                        } else {
+                            signInViewModel.showOfflineError()
+                        }
                     } onCompletion: { _ in
                         // Handled in AuthenticationViewModel
                     }
                     .signInWithAppleButtonStyle(.black)
                     .frame(height: 50)
                     .cornerRadius(8)
+                    .disabled(!networkMonitor.isConnected)
+                }
+                
+                // Offline Warning
+                if !networkMonitor.isConnected {
+                    HStack {
+                        Image(systemName: "wifi.slash")
+                            .foregroundColor(.orange)
+                        Text(Strings.Error.Game.needInternetConnection)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.horizontal)
                 }
                 
                 // Error Message
@@ -65,13 +92,15 @@ struct SignInView: View {
                     .foregroundColor(.secondary)
                 
                 HStack(spacing: 20) {
-                    Button("Terms of Service") {
-                        // Handle terms
+                    Button(Strings.Profile.termsOfService) {
+                        legalDocumentType = .termsOfService
+                        showingLegalDocument = true
                     }
                     .font(.caption)
                     
-                    Button("Privacy Policy") {
-                        // Handle privacy
+                    Button(Strings.Profile.privacyPolicy) {
+                        legalDocumentType = .privacyPolicy
+                        showingLegalDocument = true
                     }
                     .font(.caption)
                 }
@@ -88,5 +117,41 @@ struct SignInView: View {
                 endPoint: .bottomTrailing
             )
         )
+        .sheet(isPresented: $showingLegalDocument) {
+            switch legalDocumentType {
+            case .termsOfService:
+                LegalDocumentView(
+                    title: Strings.Profile.termsOfService,
+                    content: Strings.Profile.termsOfServicePlaceholder
+                )
+            case .privacyPolicy:
+                LegalDocumentView(
+                    title: Strings.Profile.privacyPolicy,
+                    content: Strings.Profile.privacyPolicyPlaceholder
+                )
+            }
+        }
     }
+}
+
+// MARK: - Previews
+#Preview("Default State") {
+    SignInView(authViewModel: AuthenticationViewModel())
+}
+
+#Preview("Authenticating State") {
+    let authViewModel = AuthenticationViewModel()
+    // Note: Would need to set authenticating state for preview
+    return SignInView(authViewModel: authViewModel)
+}
+
+#Preview("With Error Message") {
+    let authViewModel = AuthenticationViewModel()
+    // Note: Would need to set error message for preview
+    return SignInView(authViewModel: authViewModel)
+}
+
+#Preview("Dark Mode") {
+    SignInView(authViewModel: AuthenticationViewModel())
+        .preferredColorScheme(.dark)
 }
