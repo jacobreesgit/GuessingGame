@@ -138,7 +138,28 @@ class GameLobbyViewModel: ObservableObject {
             return
         }
         
-        database.child("sessions").child(session.id).child("gameStarted").setValue(true) { [weak self] error, _ in
+        // Assign roles randomly
+        let playerIDs = Array(session.players.keys)
+        let shuffledPlayers = playerIDs.shuffled()
+        let answererID = shuffledPlayers.first!
+        let guesserIDs = Array(shuffledPlayers.dropFirst())
+        
+        // Create initial game state
+        let gameState = GameState(answererID: answererID, guesserIDs: guesserIDs)
+        
+        // Update session with roles and game state
+        var updatedSession = session
+        updatedSession.gameState = gameState
+        
+        // Assign roles
+        for playerID in playerIDs {
+            updatedSession.playerRoles[playerID] = playerID == answererID ? .answerer : .guesser
+        }
+        
+        // Mark game as started
+        updatedSession.gameStarted = true
+        
+        database.child("sessions").child(session.id).setValue(updatedSession.toDictionary()) { [weak self] error, _ in
             guard let self = self else { return }
             
             Task { @MainActor in

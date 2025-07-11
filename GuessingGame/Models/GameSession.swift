@@ -5,6 +5,8 @@ struct GameSession: Codable, Equatable {
     let hostId: String
     var players: [String: GamePlayer]
     var gameStarted: Bool
+    var gameState: GameState?
+    var playerRoles: [String: PlayerRole]
     var createdAt: Date
     
     init(id: String, hostId: String, hostPlayer: GamePlayer) {
@@ -12,18 +14,29 @@ struct GameSession: Codable, Equatable {
         self.hostId = hostId
         self.players = [hostId: hostPlayer]
         self.gameStarted = false
+        self.gameState = nil
+        self.playerRoles = [:]
         self.createdAt = Date()
     }
     
     func toDictionary() -> [String: Any] {
         let playersDict = players.mapValues { $0.toDictionary() }
-        return [
+        let rolesDict = playerRoles.mapValues { $0.rawValue }
+        
+        var dict: [String: Any] = [
             "id": id,
             "hostId": hostId,
             "players": playersDict,
             "gameStarted": gameStarted,
+            "playerRoles": rolesDict,
             "createdAt": createdAt.timeIntervalSince1970
         ]
+        
+        if let gameState = gameState {
+            dict["gameState"] = gameState.toDictionary()
+        }
+        
+        return dict
     }
     
     static func fromDictionary(_ dict: [String: Any]) -> GameSession? {
@@ -50,6 +63,22 @@ struct GameSession: Codable, Equatable {
         session.players = players
         session.gameStarted = gameStarted
         session.createdAt = Date(timeIntervalSince1970: createdAtTimestamp)
+        
+        // Parse player roles
+        if let rolesDict = dict["playerRoles"] as? [String: String] {
+            var playerRoles: [String: PlayerRole] = [:]
+            for (playerId, roleString) in rolesDict {
+                if let role = PlayerRole(rawValue: roleString) {
+                    playerRoles[playerId] = role
+                }
+            }
+            session.playerRoles = playerRoles
+        }
+        
+        // Parse game state
+        if let gameStateDict = dict["gameState"] as? [String: Any] {
+            session.gameState = GameState.fromDictionary(gameStateDict)
+        }
         
         return session
     }

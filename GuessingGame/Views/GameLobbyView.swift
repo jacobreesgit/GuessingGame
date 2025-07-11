@@ -4,8 +4,11 @@ struct GameLobbyView: View {
     @StateObject private var lobbyViewModel: GameLobbyViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var showingLeaveConfirmation = false
+    @State private var navigateToGameplay = false
+    let user: User
     
     init(user: User) {
+        self.user = user
         self._lobbyViewModel = StateObject(wrappedValue: GameLobbyViewModel(user: user))
     }
     
@@ -51,9 +54,12 @@ struct GameLobbyView: View {
             }
             .onChange(of: lobbyViewModel.gameStarted) { _, started in
                 if started {
-                    // Navigate to game screen
-                    // TODO: Navigate to actual game view
-                    print("Game started! Navigate to game screen...")
+                    navigateToGameplay = true
+                }
+            }
+            .fullScreenCover(isPresented: $navigateToGameplay) {
+                if let gameSession = lobbyViewModel.gameSession {
+                    GameplayView(user: user, gameSession: gameSession)
                 }
             }
         }
