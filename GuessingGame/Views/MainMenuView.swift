@@ -4,6 +4,8 @@ struct MainMenuView: View {
     @ObservedObject var authViewModel: AuthenticationViewModel
     let user: User
     @State private var showingProfile = false
+    @State private var showingCreateGame = false
+    @State private var showingJoinGame = false
     
     var body: some View {
         NavigationView {
@@ -43,7 +45,7 @@ struct MainMenuView: View {
                 VStack(spacing: 24) {
                     // Create Game Button
                     Button(action: {
-                        // TODO: Navigate to create game
+                        showingCreateGame = true
                     }) {
                         HStack {
                             Image(systemName: "plus.circle.fill")
@@ -74,7 +76,7 @@ struct MainMenuView: View {
                     
                     // Join Game Button
                     Button(action: {
-                        // TODO: Navigate to join game
+                        showingJoinGame = true
                     }) {
                         HStack {
                             Image(systemName: "person.2.fill")
@@ -151,6 +153,12 @@ struct MainMenuView: View {
             .padding()
             .sheet(isPresented: $showingProfile) {
                 ProfileView(authViewModel: authViewModel, user: user)
+            }
+            .fullScreenCover(isPresented: $showingCreateGame) {
+                CreateGameView(user: user)
+            }
+            .fullScreenCover(isPresented: $showingJoinGame) {
+                JoinGameView(user: user)
             }
         }
     }
