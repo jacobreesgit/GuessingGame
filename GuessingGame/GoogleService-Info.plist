@@ -26,5 +26,7 @@
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
 	<string>1:126300141662:ios:7503c3079b2e6d24379ccf</string>
+	<key>DATABASE_URL</key>
+	<string>https://guessinggame-aaef8-default-rtdb.europe-west1.firebasedatabase.app</string>
 </dict>
 </plist>

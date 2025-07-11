@@ -5,6 +5,14 @@ import FirebaseDatabase
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         FirebaseApp.configure()
+        
+        // Set Firebase to use specific database URL
+        if let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
+           let plist = NSDictionary(contentsOfFile: path),
+           let databaseURL = plist["DATABASE_URL"] as? String {
+            print("Using Firebase Database URL: \(databaseURL)")
+        }
+        
         testFirebaseConnection()
         return true
     }

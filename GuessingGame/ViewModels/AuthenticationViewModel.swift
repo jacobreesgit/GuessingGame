@@ -50,6 +50,13 @@ class AuthenticationViewModel: NSObject, ObservableObject {
                 let newUser = User(id: firebaseUser.uid, displayName: displayName, email: email)
                 self.authenticationState = .needsAvatar(newUser)
             }
+        } withCancel: { [weak self] error in
+            print("Failed to load user profile: \(error.localizedDescription)")
+            // Even if database fails, we can still proceed with basic user info
+            let displayName = firebaseUser.displayName ?? "User"
+            let email = firebaseUser.email
+            let newUser = User(id: firebaseUser.uid, displayName: displayName, email: email)
+            self?.authenticationState = .needsAvatar(newUser)
         }
     }
     
@@ -72,14 +79,16 @@ class AuthenticationViewModel: NSObject, ObservableObject {
         user.avatar = emoji
         authenticationState = .authenticating
         
-        // Save to Firebase
+        // Save to Firebase with error handling
         database.child("users").child(user.id).setValue(user.toDictionary()) { [weak self] error, _ in
             guard let self = self else { return }
             
             if let error = error {
-                self.errorMessage = "Failed to save avatar: \(error.localizedDescription)"
-                self.authenticationState = .needsAvatar(user)
+                print("Failed to save avatar to Firebase: \(error.localizedDescription)")
+                // Continue anyway - we can still use the app without Firebase persistence
+                self.authenticationState = .authenticated(user)
             } else {
+                print("Successfully saved user avatar to Firebase")
                 self.authenticationState = .authenticated(user)
             }
         }
@@ -196,7 +205,22 @@ extension AuthenticationViewModel: ASAuthorizationControllerDelegate {
     }
     
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
-        errorMessage = "Sign in with Apple failed: \(error.localizedDescription)"
+        let authError = error as? ASAuthorizationError
+        switch authError?.code {
+        case .canceled:
+            errorMessage = "Sign in was canceled"
+        case .failed:
+            errorMessage = "Sign in failed. Please try again."
+        case .invalidResponse:
+            errorMessage = "Invalid response from Apple"
+        case .notHandled:
+            errorMessage = "Sign in not handled"
+        case .unknown:
+            errorMessage = "Unknown error occurred"
+        default:
+            errorMessage = "Sign in with Apple failed: \(error.localizedDescription)"
+        }
+        print("Sign In with Apple error: \(error)")
         authenticationState = .unauthenticated
     }
 }
